@@ -346,6 +346,28 @@
       line-height: 1.35;
     }
 
+    .sync-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .sync-status::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted-soft);
+    }
+
+    .sync-status.online::before {
+      background: var(--primary);
+      box-shadow: 0 0 0 5px rgba(243, 112, 33, 0.12);
+    }
+
     .content-grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
@@ -720,6 +742,7 @@
             <div class="progress-bar" id="progressBar"></div>
           </div>
           <p class="progress-note" id="progressNote">Defina uma meta para acompanhar a evolução.</p>
+          <p class="sync-status" id="syncStatus">Dados locais neste aparelho</p>
         </div>
       </aside>
     </section>
@@ -761,10 +784,15 @@
     <p class="footer-note">Segurança é responsabilidade de todos. A tela é atualizada automaticamente a cada minuto.</p>
   </main>
 
+  <script src="shared-config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
   <script>
     const STORAGE_KEY = 'diasSemAcidenteConfig';
     const HISTORY_KEY = 'diasSemAcidenteHistorico';
     const MS_PER_DAY = 24 * 60 * 60 * 1000;
+    let remoteRef = null;
+    let applyingRemoteState = false;
 
     const elements = {
       days: document.getElementById('daysWithoutAccidents'),
@@ -783,7 +811,8 @@
       monthsDisplay: document.getElementById('monthsDisplay'),
       yearsDisplay: document.getElementById('yearsDisplay'),
       darkModeBtn: document.getElementById('darkModeBtn'),
-      tvModeBtn: document.getElementById('tvModeBtn')
+      tvModeBtn: document.getElementById('tvModeBtn'),
+      syncStatus: document.getElementById('syncStatus')
     };
 
     function getTodayISO() {
@@ -819,6 +848,7 @@
 
     function saveConfig(config) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      saveRemoteState();
     }
 
     function loadHistory() {
@@ -831,6 +861,80 @@
 
     function saveHistory(history) {
       localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      saveRemoteState();
+    }
+
+    function setSyncStatus(text, online = false) {
+      elements.syncStatus.textContent = text;
+      elements.syncStatus.classList.toggle('online', online);
+    }
+
+    function getState() {
+      return {
+        config: loadConfig(),
+        history: loadHistory(),
+        updatedAt: new Date().toISOString()
+      };
+    }
+
+    function applyState(state) {
+      if (!state || typeof state !== 'object') return;
+      applyingRemoteState = true;
+
+      if (state.config) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.config));
+      }
+
+      if (Array.isArray(state.history)) {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
+      }
+
+      applyingRemoteState = false;
+      render();
+    }
+
+    function saveRemoteState() {
+      if (!remoteRef || applyingRemoteState) return;
+      remoteRef.set(getState()).catch(() => {
+        setSyncStatus('Sem conexão com dados compartilhados');
+      });
+    }
+
+    function initRemoteSync() {
+      const sharedConfig = window.SOBRAL_SHARED_CONFIG;
+
+      if (!sharedConfig || sharedConfig.provider !== 'firebase') {
+        setSyncStatus('Dados locais neste aparelho');
+        return;
+      }
+
+      if (!window.firebase || !firebase.database) {
+        setSyncStatus('Sincronização indisponível');
+        return;
+      }
+
+      try {
+        firebase.initializeApp(sharedConfig.firebaseConfig);
+        remoteRef = firebase.database().ref(sharedConfig.path || 'dias-sem-acidentes/state');
+        setSyncStatus('Conectando dados compartilhados...');
+
+        remoteRef.on('value', (snapshot) => {
+          const state = snapshot.val();
+
+          if (state) {
+            applyState(state);
+            setSyncStatus('Dados compartilhados conectados', true);
+            return;
+          }
+
+          saveRemoteState();
+          setSyncStatus('Dados compartilhados conectados', true);
+        }, () => {
+          setSyncStatus('Sem conexão com dados compartilhados');
+        });
+      } catch (error) {
+        setSyncStatus('Erro na sincronização');
+      }
     }
 
     function calculateDaysSince(isoDate) {
@@ -985,6 +1089,7 @@
     // Atualiza a tela a cada minuto para refletir viradas de dia sem intervenção manual.
     setInterval(render, 60 * 1000);
     render();
+    initRemoteSync();
   </script>
 </body>
 </html>
