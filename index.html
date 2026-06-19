@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dias Sem Acidente</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #F5F5F5;
+      --surface: #ffffff;
+      --surface-2: #FFF4EB;
+      --text: #3D3D3D;
+      --muted: #6B6B6B;
+      --muted-soft: #9A9A9A;
+      --primary: #F37021;
+      --primary-2: #F89B4D;
+      --primary-dark: #E0580A;
+      --danger: #E0580A;
+      --border: #E5E5E5;
+      --shadow: 0 4px 14px rgba(0,0,0,.06);
+      --radius: 8px;
+    }
+
+    body.dark {
+      color-scheme: dark;
+      --bg: #252525;
+      --surface: #303030;
+      --surface-2: #3D3D3D;
+      --text: #FFFFFF;
+      --muted: #E5E5E5;
+      --muted-soft: #9A9A9A;
+      --primary: #F37021;
+      --primary-2: #F89B4D;
+      --primary-dark: #E0580A;
+      --danger: #E0580A;
+      --border: #4A4A4A;
+      --shadow: 0 22px 52px rgba(0, 0, 0, 0.38);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(243, 112, 33, 0.13), transparent 36rem),
+        linear-gradient(135deg, var(--bg), #ffffff 65%, #FFF4EB);
+      color: var(--text);
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    body.dark {
+      background:
+        radial-gradient(circle at top left, rgba(243, 112, 33, 0.16), transparent 34rem),
+        linear-gradient(135deg, #252525, #303030 60%, #1f1f1f);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand > div:last-child {
+      min-width: 0;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 46px;
+      height: 46px;
+      place-items: center;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 800;
+      box-shadow: 0 12px 25px rgba(243, 112, 33, 0.25);
+      flex: 0 0 auto;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.35rem, 2vw, 2.1rem);
+      line-height: 1.1;
+      overflow-wrap: anywhere;
+    }
+
+    .subtitle {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.35;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 8px;
+      color: #ffffff;
+      background: var(--primary);
+      font-weight: 700;
+      transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+      box-shadow: 0 10px 22px rgba(243, 112, 33, 0.18);
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      background: var(--primary-dark);
+    }
+
+    .btn.secondary {
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: none;
+    }
+
+    .btn.secondary:hover {
+      background: var(--surface-2);
+    }
+
+    .btn.danger {
+      background: var(--danger);
+      box-shadow: 0 10px 22px rgba(224, 88, 10, 0.2);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .panel,
+    .card {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+      min-width: 0;
+    }
+
+    body.dark .panel,
+    body.dark .card {
+      background: rgba(48, 48, 48, 0.92);
+    }
+
+    .counter-panel {
+      padding: clamp(22px, 4vw, 42px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--primary-dark);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.78rem;
+    }
+
+    body.dark .status-label {
+      color: var(--primary);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 0 6px rgba(243, 112, 33, 0.12);
+    }
+
+    .days-number {
+      margin-top: 18px;
+      font-size: clamp(4.5rem, 15vw, 11rem);
+      line-height: 0.86;
+      font-weight: 900;
+      color: var(--primary);
+      overflow-wrap: anywhere;
+    }
+
+    .days-title {
+      margin-top: 14px;
+      font-size: clamp(1.4rem, 4vw, 3rem);
+      line-height: 1.05;
+      font-weight: 900;
+    }
+
+    .motivation {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      line-height: 1.45;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .side-panel {
+      padding: 22px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: grid;
+      gap: 7px;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--primary-2);
+      box-shadow: 0 0 0 3px rgba(243, 112, 33, 0.16);
+    }
+
+    .progress-wrap {
+      display: grid;
+      gap: 10px;
+      padding-top: 4px;
+    }
+
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .progress {
+      height: 16px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--primary), var(--primary-2));
+      transition: width 0.4s ease;
+    }
+
+    .progress-note {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.35;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .card {
+      padding: 22px;
+      box-shadow: 0 4px 14px rgba(0,0,0,.06);
+    }
+
+    body.dark .card {
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 10px;
+      max-height: 330px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .history-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 13px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-2);
+    }
+
+    .history-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .history-item span {
+      color: var(--muted);
+      font-size: 0.9rem;
+      overflow-wrap: anywhere;
+    }
+
+    .pill {
+      padding: 7px 10px;
+      border-radius: 999px;
+      color: var(--primary-dark);
+      background: rgba(243, 112, 33, 0.1);
+      font-size: 0.82rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    body.dark .pill {
+      color: var(--primary);
+      background: rgba(243, 112, 33, 0.16);
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 18px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .mini-card {
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    .mini-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 5px;
+    }
+
+    .mini-card strong {
+      font-size: 1.2rem;
+      overflow-wrap: anywhere;
+    }
+
+    .footer-note {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      text-align: center;
+    }
+
+    body.tv-mode .app {
+      width: min(1500px, calc(100% - 48px));
+      padding-top: 34px;
+    }
+
+    body.tv-mode .topbar,
+    body.tv-mode .content-grid,
+    body.tv-mode .side-panel,
+    body.tv-mode .footer-note {
+      display: none;
+    }
+
+    body.tv-mode .hero {
+      grid-template-columns: 1fr;
+      min-height: calc(100vh - 68px);
+      align-items: center;
+    }
+
+    body.tv-mode .counter-panel {
+      display: grid;
+      min-height: calc(100vh - 68px);
+      align-content: center;
+      text-align: center;
+    }
+
+    body.tv-mode .stats-grid {
+      max-width: 980px;
+      margin-inline: auto;
+    }
+
+    body.tv-mode .days-number {
+      font-size: clamp(8rem, 24vw, 20rem);
+    }
+
+    @media (max-width: 900px) {
+      .hero,
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .side-panel {
+        order: -1;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .app {
+        width: min(100% - 20px, 1180px);
+        padding-top: 16px;
+        padding-bottom: 28px;
+      }
+
+      .topbar,
+      .section-head {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .topbar {
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+
+      .brand {
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .brand-mark {
+        width: 40px;
+        height: 40px;
+        font-size: 21px;
+      }
+
+      h1 {
+        font-size: 1.45rem;
+      }
+
+      .subtitle {
+        font-size: 0.88rem;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        justify-content: stretch;
+      }
+
+      .btn {
+        width: 100%;
+        min-height: 44px;
+        padding-inline: 10px;
+        white-space: normal;
+        line-height: 1.15;
+      }
+
+      .counter-panel,
+      .side-panel,
+      .card {
+        padding: 16px;
+      }
+
+      .status-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+      }
+
+      .days-number {
+        margin-top: 14px;
+        font-size: 5.25rem;
+        line-height: 0.9;
+      }
+
+      .days-title {
+        margin-top: 10px;
+        font-size: 1.75rem;
+      }
+
+      .motivation {
+        margin-top: 12px;
+        font-size: 1rem;
+      }
+
+      .stats-grid {
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .stats-grid,
+      .mini-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stat,
+      .mini-card {
+        padding: 13px;
+      }
+
+      .history-item {
+        grid-template-columns: 1fr;
+      }
+
+      .pill {
+        width: fit-content;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .app {
+        width: min(100% - 14px, 1180px);
+      }
+
+      .actions {
+        grid-template-columns: 1fr;
+      }
+
+      .days-number {
+        font-size: 4.4rem;
+      }
+
+      .days-title {
+        font-size: 1.45rem;
+      }
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+      }
+
+      .topbar,
+      .side-panel,
+      .actions,
+      .footer-note {
+        display: none !important;
+      }
+
+      .app {
+        width: 100%;
+        padding: 0;
+      }
+
+      .hero,
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel,
+      .card {
+        box-shadow: none;
+        border-color: #E5E5E5;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">S</div>
+        <div>
+          <h1>Dias Sem Acidente</h1>
+          <p class="subtitle">Painel simples de segurança do trabalho</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn secondary" type="button" id="darkModeBtn">Modo escuro</button>
+        <button class="btn secondary" type="button" id="tvModeBtn">Painel TV</button>
+        <button class="btn secondary" type="button" id="printBtn">Exportar PDF</button>
+        <button class="btn secondary" type="button" id="csvBtn">Exportar Excel</button>
+      </div>
+    </header>
+
+    <section class="hero" aria-label="Resumo de dias sem acidentes">
+      <article class="panel counter-panel">
+        <div class="status-label"><span class="status-dot"></span> Segurança ativa</div>
+        <div class="days-number" id="daysWithoutAccidents">0</div>
+        <h2 class="days-title">dias sem acidentes</h2>
+        <p class="motivation" id="mainMessage">Estamos há 0 dias sem acidentes.</p>
+
+        <div class="stats-grid">
+          <div class="stat">
+            <span>Último acidente</span>
+            <strong id="lastAccidentDisplay">--/--/----</strong>
+          </div>
+          <div class="stat">
+            <span>Data atual</span>
+            <strong id="currentDateDisplay">--/--/----</strong>
+          </div>
+          <div class="stat">
+            <span>Equivalência</span>
+            <strong id="equivalentTime">0 meses / 0 anos</strong>
+          </div>
+        </div>
+      </article>
+
+      <aside class="panel side-panel" aria-label="Configurações">
+        <div class="form-group">
+          <label for="lastAccidentDate">Data do último acidente</label>
+          <input type="date" id="lastAccidentDate" />
+        </div>
+
+        <div class="form-group">
+          <label for="goalDays">Meta de dias sem acidentes</label>
+          <input type="number" id="goalDays" min="1" step="1" value="365" />
+        </div>
+
+        <button class="btn" type="button" id="saveSettingsBtn">Salvar configurações</button>
+        <button class="btn danger" type="button" id="registerAccidentBtn">Registrar Acidente</button>
+
+        <div class="progress-wrap">
+          <div class="progress-top">
+            <span>Progresso da meta</span>
+            <span id="progressText">0%</span>
+          </div>
+          <div class="progress" aria-label="Progresso da meta">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <p class="progress-note" id="progressNote">Defina uma meta para acompanhar a evolução.</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="content-grid">
+      <article class="card">
+        <div class="section-head">
+          <h2>Histórico de acidentes</h2>
+          <button class="btn secondary" type="button" id="clearHistoryBtn">Limpar histórico</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </article>
+
+      <aside class="card">
+        <div class="section-head">
+          <h2>Indicadores</h2>
+        </div>
+        <div class="mini-grid">
+          <div class="mini-card">
+            <span>Meta</span>
+            <strong id="goalDisplay">365 dias</strong>
+          </div>
+          <div class="mini-card">
+            <span>Faltam</span>
+            <strong id="remainingDisplay">365 dias</strong>
+          </div>
+          <div class="mini-card">
+            <span>Meses aproximados</span>
+            <strong id="monthsDisplay">0</strong>
+          </div>
+          <div class="mini-card">
+            <span>Anos aproximados</span>
+            <strong id="yearsDisplay">0</strong>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <p class="footer-note">Segurança é responsabilidade de todos. A tela é atualizada automaticamente a cada minuto.</p>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'diasSemAcidenteConfig';
+    const HISTORY_KEY = 'diasSemAcidenteHistorico';
+    const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+    const elements = {
+      days: document.getElementById('daysWithoutAccidents'),
+      mainMessage: document.getElementById('mainMessage'),
+      lastAccidentDisplay: document.getElementById('lastAccidentDisplay'),
+      currentDateDisplay: document.getElementById('currentDateDisplay'),
+      equivalentTime: document.getElementById('equivalentTime'),
+      lastAccidentDate: document.getElementById('lastAccidentDate'),
+      goalDays: document.getElementById('goalDays'),
+      progressText: document.getElementById('progressText'),
+      progressBar: document.getElementById('progressBar'),
+      progressNote: document.getElementById('progressNote'),
+      historyList: document.getElementById('historyList'),
+      goalDisplay: document.getElementById('goalDisplay'),
+      remainingDisplay: document.getElementById('remainingDisplay'),
+      monthsDisplay: document.getElementById('monthsDisplay'),
+      yearsDisplay: document.getElementById('yearsDisplay'),
+      darkModeBtn: document.getElementById('darkModeBtn'),
+      tvModeBtn: document.getElementById('tvModeBtn')
+    };
+
+    function getTodayISO() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return today.toISOString().slice(0, 10);
+    }
+
+    function parseLocalDate(isoDate) {
+      const [year, month, day] = isoDate.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    function formatDate(isoDate) {
+      if (!isoDate) return '--/--/----';
+      return parseLocalDate(isoDate).toLocaleDateString('pt-BR');
+    }
+
+    function loadConfig() {
+      const fallback = {
+        lastAccidentDate: getTodayISO(),
+        goalDays: 365,
+        darkMode: false,
+        tvMode: false
+      };
+
+      try {
+        return { ...fallback, ...JSON.parse(localStorage.getItem(STORAGE_KEY)) };
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function saveConfig(config) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    }
+
+    function loadHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveHistory(history) {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    }
+
+    function calculateDaysSince(isoDate) {
+      const start = parseLocalDate(isoDate);
+      const today = parseLocalDate(getTodayISO());
+      return Math.max(0, Math.floor((today - start) / MS_PER_DAY));
+    }
+
+    function getEquivalentTime(days) {
+      return {
+        months: Math.floor(days / 30.4375),
+        years: Math.floor(days / 365.25)
+      };
+    }
+
+    function renderHistory() {
+      const history = loadHistory();
+
+      if (!history.length) {
+        elements.historyList.innerHTML = '<div class="empty">Nenhum acidente registrado no histórico.</div>';
+        return;
+      }
+
+      elements.historyList.innerHTML = history
+        .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))
+        .map((item) => `
+          <div class="history-item">
+            <div>
+              <strong>Acidente registrado em ${formatDate(item.date)}</strong>
+              <span>Lançamento feito em ${new Date(item.recordedAt).toLocaleString('pt-BR')}</span>
+            </div>
+            <span class="pill">Contagem reiniciada</span>
+          </div>
+        `)
+        .join('');
+    }
+
+    function render() {
+      const config = loadConfig();
+      const days = calculateDaysSince(config.lastAccidentDate);
+      const goal = Math.max(1, Number(config.goalDays) || 365);
+      const progress = Math.min(100, Math.round((days / goal) * 100));
+      const remaining = Math.max(0, goal - days);
+      const equivalent = getEquivalentTime(days);
+
+      document.body.classList.toggle('dark', Boolean(config.darkMode));
+      document.body.classList.toggle('tv-mode', Boolean(config.tvMode));
+      elements.darkModeBtn.textContent = config.darkMode ? 'Modo claro' : 'Modo escuro';
+      elements.tvModeBtn.textContent = config.tvMode ? 'Sair do Painel TV' : 'Painel TV';
+
+      elements.lastAccidentDate.value = config.lastAccidentDate;
+      elements.goalDays.value = goal;
+      elements.days.textContent = days;
+      elements.mainMessage.textContent = `Estamos há ${days} ${days === 1 ? 'dia' : 'dias'} sem acidentes.`;
+      elements.lastAccidentDisplay.textContent = formatDate(config.lastAccidentDate);
+      elements.currentDateDisplay.textContent = formatDate(getTodayISO());
+      elements.equivalentTime.textContent = `${equivalent.months} meses / ${equivalent.years} anos`;
+      elements.progressText.textContent = `${progress}%`;
+      elements.progressBar.style.width = `${progress}%`;
+      elements.progressNote.textContent = remaining === 0
+        ? `Meta de ${goal} dias alcançada. Continue mantendo a segurança em primeiro lugar.`
+        : `Faltam ${remaining} ${remaining === 1 ? 'dia' : 'dias'} para atingir a meta de ${goal} dias.`;
+      elements.goalDisplay.textContent = `${goal} dias`;
+      elements.remainingDisplay.textContent = `${remaining} dias`;
+      elements.monthsDisplay.textContent = equivalent.months;
+      elements.yearsDisplay.textContent = equivalent.years;
+
+      renderHistory();
+    }
+
+    function updateSettings() {
+      const config = loadConfig();
+      const selectedDate = elements.lastAccidentDate.value || getTodayISO();
+      const goal = Math.max(1, Number(elements.goalDays.value) || 365);
+
+      config.lastAccidentDate = selectedDate > getTodayISO() ? getTodayISO() : selectedDate;
+      config.goalDays = goal;
+      saveConfig(config);
+      render();
+    }
+
+    function registerAccident() {
+      const today = getTodayISO();
+      const config = loadConfig();
+      const history = loadHistory();
+
+      history.push({
+        date: today,
+        recordedAt: new Date().toISOString()
+      });
+
+      config.lastAccidentDate = today;
+      saveHistory(history);
+      saveConfig(config);
+      render();
+    }
+
+    function exportHistoryToCsv() {
+      const history = loadHistory();
+      const header = ['Data do acidente', 'Registrado em'];
+      const rows = history.map((item) => [
+        formatDate(item.date),
+        new Date(item.recordedAt).toLocaleString('pt-BR')
+      ]);
+      const csv = [header, ...rows]
+        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(';'))
+        .join('\n');
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      link.href = url;
+      link.download = 'historico-acidentes.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('saveSettingsBtn').addEventListener('click', updateSettings);
+    document.getElementById('registerAccidentBtn').addEventListener('click', registerAccident);
+    document.getElementById('printBtn').addEventListener('click', () => window.print());
+    document.getElementById('csvBtn').addEventListener('click', exportHistoryToCsv);
+    document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+      if (confirm('Deseja limpar todo o histórico de acidentes?')) {
+        saveHistory([]);
+        render();
+      }
+    });
+
+    elements.darkModeBtn.addEventListener('click', () => {
+      const config = loadConfig();
+      config.darkMode = !config.darkMode;
+      saveConfig(config);
+      render();
+    });
+
+    elements.tvModeBtn.addEventListener('click', () => {
+      const config = loadConfig();
+      config.tvMode = !config.tvMode;
+      saveConfig(config);
+      render();
+    });
+
+    elements.lastAccidentDate.addEventListener('change', updateSettings);
+    elements.goalDays.addEventListener('change', updateSettings);
+
+    const startupConfig = loadConfig();
+    if (startupConfig.tvMode) {
+      startupConfig.tvMode = false;
+      saveConfig(startupConfig);
+    }
+
+    // Atualiza a tela a cada minuto para refletir viradas de dia sem intervenção manual.
+    setInterval(render, 60 * 1000);
+    render();
+  </script>
+</body>
+</html>
